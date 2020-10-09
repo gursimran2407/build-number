@@ -126,6 +126,7 @@ function main() {
             
             //Existing build numbers:
             let nrs = nrTags.map(t => parseInt(t.ref.match(/-(\d+)$/)[1]));
+            console.log(nrs);
     
             let currentBuildNumber = Math.max(...nrs);
             console.log(`Last build nr was ${currentBuildNumber}.`);
@@ -145,19 +146,19 @@ function main() {
             sha: env.GITHUB_SHA
         };
     
-        request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
-            if (status !== 201 || err) {
-                fail(`Failed to create new build-number ref. Status: ${status}, err: ${err}, result: ${JSON.stringify(result)}`);
-            }
+        // request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
+        //     if (status !== 201 || err) {
+        //         fail(`Failed to create new build-number ref. Status: ${status}, err: ${err}, result: ${JSON.stringify(result)}`);
+        //     }
 
-            console.log(`Successfully updated build number to ${nextBuildNumber}`);
+        //     console.log(`Successfully updated build number to ${nextBuildNumber}`);
             
-            //Setting the output and a environment variable to new build number...
-            console.log(`::set-env name=BUILD_NUMBER::${nextBuildNumber}`);
-            console.log(`::set-output name=build_number::${nextBuildNumber}`);
-            //Save to file so it can be used for next jobs...
-            fs.writeFileSync('BUILD_NUMBER', nextBuildNumber.toString());
-        });
+        //     //Setting the output and a environment variable to new build number...
+        //     console.log(`::set-env name=BUILD_NUMBER::${nextBuildNumber}`);
+        //     console.log(`::set-output name=build_number::${nextBuildNumber}`);
+        //     //Save to file so it can be used for next jobs...
+        //     fs.writeFileSync('BUILD_NUMBER', nextBuildNumber.toString());
+        // });
     });
 }
 
