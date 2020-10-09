@@ -111,40 +111,40 @@ function main() {
         }
     }
 
-    // request('GET', `/repos/${env.GITHUB_REPOSITORY}/git/refs/tags/${date}`, null, (err, status, result) => {
+    request('GET', `/repos/${env.GITHUB_REPOSITORY}/git/refs/tags/${date}`, null, (err, status, result) => {
     
-    //     let nextBuildNumber, nrTags;
+        let nextBuildNumber, nrTags;
     
-    //     if (status === 404) {
-    //         console.log('No existing tags for this month, starting at 0.');
-    //         nextBuildNumber = `${date}.0.0`;
-    //         nrTags = [];
-    //     } else if (status === 200) {
-    //         const regexString = `/${date}(\\d+)-(\\d+)$`;
-    //         const regex = new RegExp(regexString);
-    //         nrTags = result.filter(d => d.ref.match(regex));
+        if (status === 404) {
+            console.log('No existing tags for this month, starting at 0.');
+            nextBuildNumber = `${date}.0.0`;
+            nrTags = [];
+        } else if (status === 200) {
+            const regexString = `/${date}(\\d+)-(\\d+)$`;
+            const regex = new RegExp(regexString);
+            nrTags = result.filter(d => d.ref.match(regex));
             
-    //         //Existing build numbers:
-    //         let nrs = nrTags.map(t => parseInt(t.ref.match(/-(\d+)$/)[1]));
+            //Existing build numbers:
+            let nrs = nrTags.map(t => parseInt(t.ref.match(/-(\d+)$/)[1]));
     
-    //         let currentBuildNumber = Math.max(...nrs);
-    //         console.log(`Last build nr was ${currentBuildNumber}.`);
+            let currentBuildNumber = Math.max(...nrs);
+            console.log(`Last build nr was ${currentBuildNumber}.`);
     
-    //         nextBuildNumber = `${date}.${currentBuildNumber + 1}.0`;
-    //         console.log(`Updating build counter to ${nextBuildNumber}...`);
-    //     } else {
-    //         if (err) {
-    //             fail(`Failed to get refs. Error: ${err}, status: ${status}`);
-    //         } else {
-    //             fail(`Getting build-number refs failed with http status ${status}, error: ${JSON.stringify(result)}`);
-    //         } 
-    //     }
+            nextBuildNumber = `${date}.${currentBuildNumber + 1}.0`;
+            console.log(`Updating build counter to ${nextBuildNumber}...`);
+        } else {
+            if (err) {
+                fail(`Failed to get refs. Error: ${err}, status: ${status}`);
+            } else {
+                fail(`Getting build-number refs failed with http status ${status}, error: ${JSON.stringify(result)}`);
+            } 
+        }
 
-    //     let newRefData = {
-    //         ref:`refs/tags/${prefix}build-number-${nextBuildNumber}`, 
-    //         sha: env.GITHUB_SHA
-    //     };
-    //     console.log(`would have tagged ${newRefData.sha} as ${newRefData.ref}`)
+        let newRefData = {
+            ref:`refs/tags/${prefix}build-number-${nextBuildNumber}`, 
+            sha: env.GITHUB_SHA
+        };
+        console.log(`would have tagged ${newRefData.sha} as ${newRefData.ref}`)
     
     //     request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
     //         if (status !== 201 || err) {
@@ -175,7 +175,7 @@ function main() {
     //         }
 
     //     });
-    // });
+    });
 }
 
 main();
