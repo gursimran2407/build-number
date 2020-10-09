@@ -59,11 +59,40 @@ function request(method, path, data, callback) {
     }
 }
 
+/**
+ * Requires a git repository to have already been checked out
+ * Generates a build number of the format YYYY.MM.v.0, where:
+ * - YY.MM. is year.month, e.g. 2019.01.
+ * - v is the auto-incrementing version number. It will increment for every build in a given month, and then reset
+ *   after the month ends (so, 19.01.0.0, 19.01.1.0, 19.01.2.0, february starts, 19.02.0.0, 19.02.1.0, ...)
+ * - 0 is the patch number, which should be manually incremented as necessary
+ *
+ * This should be used for live applications, or in other instances where tags are needed but semver isn't
+ * the best solution
+ *
+ * @return the next build number for the checked out repository
+ */
+function generateBuildNumber(latestVersion) {
+    const [year, month, major, patch] = latestVersion.split('.').map(n => parseInt(n));
+    const currentDate = generateBuildDate();
+    const lastTaggedDate = `${year}.${month}`
+    return lastTaggedDate === currentDate ? `${currentDate}.${major + 1}.0` : `${currentDate}.0.0`
+}
+
+
+function generateBuildDate() {
+    const o_date = new Intl.DateTimeFormat('en-us');
+    const f_date = (m_ca, m_it) => Object({...m_ca, [m_it.type]: m_it.value});
+    const m_date = o_date.formatToParts().reduce(f_date, {});
+    return `${m_date.year}.${m_date.month}`; 
+}
+
 
 function main() {
 
     const path = 'BUILD_NUMBER/BUILD_NUMBER';
     const prefix = env.INPUT_PREFIX ? `${env.INPUT_PREFIX}-` : '';
+    const date = generateBuildDate();
 
     //See if we've already generated the build number and are in later steps...
     if (fs.existsSync(path)) {
@@ -82,79 +111,71 @@ function main() {
         }
     }
 
-    request('GET', `/repos/${env.GITHUB_REPOSITORY}/git/refs/tags/${prefix}build-number-`, null, (err, status, result) => {
+    // request('GET', `/repos/${env.GITHUB_REPOSITORY}/git/refs/tags/${date}`, null, (err, status, result) => {
     
-        let nextBuildNumber, nrTags;
+    //     let nextBuildNumber, nrTags;
     
-        if (status === 404) {
-            console.log('No build-number ref available, starting at 1.');
-            nextBuildNumber = 1;
-            nrTags = [];
-        } else if (status === 200) {
-            const regexString = `/${prefix}build-number-(\\d+)$`;
-            const regex = new RegExp(regexString);
-            nrTags = result.filter(d => d.ref.match(regex));
+    //     if (status === 404) {
+    //         console.log('No existing tags for this month, starting at 0.');
+    //         nextBuildNumber = `${date}.0.0`;
+    //         nrTags = [];
+    //     } else if (status === 200) {
+    //         const regexString = `/${date}(\\d+)-(\\d+)$`;
+    //         const regex = new RegExp(regexString);
+    //         nrTags = result.filter(d => d.ref.match(regex));
             
-            const MAX_OLD_NUMBERS = 5; //One or two ref deletes might fail, but if we have lots then there's something wrong!
-            if (nrTags.length > MAX_OLD_NUMBERS) {
-                fail(`ERROR: Too many ${prefix}build-number- refs in repository, found ${nrTags.length}, expected only 1. Check your tags!`);
-            }
-            
-            //Existing build numbers:
-            let nrs = nrTags.map(t => parseInt(t.ref.match(/-(\d+)$/)[1]));
+    //         //Existing build numbers:
+    //         let nrs = nrTags.map(t => parseInt(t.ref.match(/-(\d+)$/)[1]));
     
-            let currentBuildNumber = Math.max(...nrs);
-            console.log(`Last build nr was ${currentBuildNumber}.`);
+    //         let currentBuildNumber = Math.max(...nrs);
+    //         console.log(`Last build nr was ${currentBuildNumber}.`);
     
-            nextBuildNumber = currentBuildNumber + 1;
-            console.log(`Updating build counter to ${nextBuildNumber}...`);
-        } else {
-            if (err) {
-                fail(`Failed to get refs. Error: ${err}, status: ${status}`);
-            } else {
-                fail(`Getting build-number refs failed with http status ${status}, error: ${JSON.stringify(result)}`);
-            } 
-        }
+    //         nextBuildNumber = `${date}.${currentBuildNumber + 1}.0`;
+    //         console.log(`Updating build counter to ${nextBuildNumber}...`);
+    //     } else {
+    //         if (err) {
+    //             fail(`Failed to get refs. Error: ${err}, status: ${status}`);
+    //         } else {
+    //             fail(`Getting build-number refs failed with http status ${status}, error: ${JSON.stringify(result)}`);
+    //         } 
+    //     }
 
-        let newRefData = {
-            ref:`refs/tags/${prefix}build-number-${nextBuildNumber}`, 
-            sha: env.GITHUB_SHA
-        };
+    //     let newRefData = {
+    //         ref:`refs/tags/${prefix}build-number-${nextBuildNumber}`, 
+    //         sha: env.GITHUB_SHA
+    //     };
+    //     console.log(`would have tagged ${newRefData.sha} as ${newRefData.ref}`)
     
-        request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
-            if (status !== 201 || err) {
-                fail(`Failed to create new build-number ref. Status: ${status}, err: ${err}, result: ${JSON.stringify(result)}`);
-            }
+    //     request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
+    //         if (status !== 201 || err) {
+    //             fail(`Failed to create new build-number ref. Status: ${status}, err: ${err}, result: ${JSON.stringify(result)}`);
+    //         }
 
-            console.log(`Successfully updated build number to ${nextBuildNumber}`);
+    //         console.log(`Successfully updated build number to ${nextBuildNumber}`);
             
-            //Setting the output and a environment variable to new build number...
-            console.log(`::set-env name=BUILD_NUMBER::${nextBuildNumber}`);
-            console.log(`::set-output name=build_number::${nextBuildNumber}`);
-            //Save to file so it can be used for next jobs...
-            fs.writeFileSync('BUILD_NUMBER', nextBuildNumber.toString());
+    //         //Setting the output and a environment variable to new build number...
+    //         console.log(`::set-env name=BUILD_NUMBER::${nextBuildNumber}`);
+    //         console.log(`::set-output name=build_number::${nextBuildNumber}`);
+    //         //Save to file so it can be used for next jobs...
+    //         fs.writeFileSync('BUILD_NUMBER', nextBuildNumber.toString());
             
-            //Cleanup
-            if (nrTags) {
-                console.log(`Deleting ${nrTags.length} older build counters...`);
+    //         //Cleanup
+    //         if (nrTags) {
+    //             console.log(`Deleting ${nrTags.length} older build counters...`);
             
-                for (let nrTag of nrTags) {
-                    request('DELETE', `/repos/${env.GITHUB_REPOSITORY}/git/${nrTag.ref}`, null, (err, status, result) => {
-                        if (status !== 204 || err) {
-                            console.warn(`Failed to delete ref ${nrTag.ref}, status: ${status}, err: ${err}, result: ${JSON.stringify(result)}`);
-                        } else {
-                            console.log(`Deleted ${nrTag.ref}`);
-                        }
-                    });
-                }
-            }
+    //             for (let nrTag of nrTags) {
+    //                 request('DELETE', `/repos/${env.GITHUB_REPOSITORY}/git/${nrTag.ref}`, null, (err, status, result) => {
+    //                     if (status !== 204 || err) {
+    //                         console.warn(`Failed to delete ref ${nrTag.ref}, status: ${status}, err: ${err}, result: ${JSON.stringify(result)}`);
+    //                     } else {
+    //                         console.log(`Deleted ${nrTag.ref}`);
+    //                     }
+    //                 });
+    //             }
+    //         }
 
-        });
-    });
+    //     });
+    // });
 }
 
 main();
-
-
-
-
