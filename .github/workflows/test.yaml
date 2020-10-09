@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate build number
-        uses: rubikloud/build-number@pre3
+        uses: rubikloud/build-number@pre4
         with:
             token: ${{secrets.github_token}}        
       - name: Print new build number
