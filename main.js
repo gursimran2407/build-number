@@ -125,6 +125,7 @@ function main() {
             nrTags = result.filter(d => d.ref.match(regex));
             
             //Existing build numbers:
+            console.log(nrTags);
             let nrs = nrTags.map(t => parseInt(t.ref.match(/-(\d+)$/)[1]));
             console.log(nrs);
     
