@@ -120,9 +120,8 @@ function main() {
             nextBuildNumber = `${date}.0.0`;
             nrTags = [];
         } else if (status === 200) {
-            const regexString = `/${date}(\\d+)-(\\d+)$`;
+            const regexString = `/${date}\\.(\\d+)\\.(\\d+)$`;
             const regex = new RegExp(regexString);
-            console.log(result);
             nrTags = result.filter(d => d.ref.match(regex));
             
             //Existing build numbers:
