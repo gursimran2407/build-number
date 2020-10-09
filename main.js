@@ -141,10 +141,11 @@ function main() {
         }
 
         let newRefData = {
-            ref:`refs/tags/${prefix}build-number-${nextBuildNumber}`, 
+            ref:`refs/tags/${nextBuildNumber}`, 
             sha: env.GITHUB_SHA
         };
         console.log(`would have tagged ${newRefData.sha} as ${newRefData.ref}`)
+        console.log(`::set-output name=build_number::${nextBuildNumber}`);
     
     //     request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
     //         if (status !== 201 || err) {
