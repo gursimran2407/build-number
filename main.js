@@ -145,6 +145,7 @@ function main() {
             sha: env.GITHUB_SHA
         };
         console.log(`would have tagged ${newRefData.sha} as ${newRefData.ref}`)
+        console.log(`::set-env name=BUILD_NUMBER::${buildNumber}`);
         console.log(`::set-output name=build_number::${nextBuildNumber}`);
     
     //     request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
