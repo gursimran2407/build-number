@@ -126,7 +126,7 @@ function main() {
             
             //Existing build numbers:
             console.log(nrTags);
-            let nrs = nrTags.map(t => parseInt(t.ref.match(/-(\d+)$/)[1]));
+            let nrs = nrTags.map(t => parseInt(t.ref.match(/\\d+\\.\\d+\\.(\\d+)\\.\\d+$/)[1]));
             console.log(nrs);
     
             let currentBuildNumber = Math.max(...nrs);
