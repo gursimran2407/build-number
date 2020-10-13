@@ -13,13 +13,16 @@ Concept and large chunks of code from https://github.com/einaregilsson/build-num
 
 Use in your workflow like so:
 
+first: create a folder under `.github` called `actions` and then copy/paste main.js and action.yml to it (this is due to the fact that GHA doesn't currently support using private actions))
+
 ```yaml
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Generate build number
-      uses: rubikloud/build-number@v1
+      uses: ./.github/actions/build-number
       with:
         token: ${{secrets.github_token}}        
     - name: Print new build number
@@ -34,9 +37,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Generate build number
       id: buildnumber
-      uses: rubikloud/build-number@v1
+      uses: ./.github/actions/build-number
       with:
         token: ${{secrets.github_token}}        
     
@@ -60,9 +64,10 @@ jobs:
     outputs:
       build_number: ${{ steps.buildnumber.outputs.build_number }}
     steps:
+    - uses: actions/checkout@v2
     - name: Generate build number
       id: buildnumber
-      uses: rubikloud/build-number@v1
+      uses: ./.github/actions/build-number
       with:
         token: ${{secrets.github_token}}
           
