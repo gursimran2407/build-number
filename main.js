@@ -66,7 +66,24 @@ function generateBuildDate() {
     return `${m_date.year}.${m_date.month}`; 
 }
 
+function setGithubEnv(variable, value) {
+    fs.writeFileSync(
+        env['GITHUB_ENV'],
+        `${variable}=${value}\n`,
+        {
+            flag: "a+"
+        }
+    );
+}
+
 function main() {
+    
+    //Some sanity checking:
+    for (let varName of ['INPUT_TOKEN', 'GITHUB_REPOSITORY', 'GITHUB_SHA', 'GITHUB_ENV']) {
+        if (!env[varName]) {
+            fail(`ERROR: Environment variable ${varName} is not defined.`);
+        }
+    }
 
     const path = 'BUILD_NUMBER/BUILD_NUMBER';
     const date = generateBuildDate();
@@ -76,16 +93,9 @@ function main() {
         let buildNumber = fs.readFileSync(path);
         console.log(`Build number already generated in earlier jobs, using build number ${buildNumber}...`);
         //Setting the output and a environment variable to new build number...
-        console.log(`::set-env name=BUILD_NUMBER::${buildNumber}`);
+        setGithubEnv("BUILD_NUMBER", buildNumber);
         console.log(`::set-output name=build_number::${buildNumber}`);
         return;
-    }
-    
-    //Some sanity checking:
-    for (let varName of ['INPUT_TOKEN', 'GITHUB_REPOSITORY', 'GITHUB_SHA']) {
-        if (!env[varName]) {
-            fail(`ERROR: Environment variable ${varName} is not defined.`);
-        }
     }
 
     request('GET', `/repos/${env.GITHUB_REPOSITORY}/git/refs/tags/${date}`, null, (err, status, result) => {
@@ -129,7 +139,7 @@ function main() {
             console.log(`Successfully updated build number to ${nextBuildNumber}`);
             
             //Setting the output and a environment variable to new build number...
-            console.log(`::set-env name=BUILD_NUMBER::${nextBuildNumber}`);
+            setGithubEnv("BUILD_NUMBER", nextBuildNumber);
             console.log(`::set-output name=build_number::${nextBuildNumber}`);
             //Save to file so it can be used for next jobs...
             fs.writeFileSync('BUILD_NUMBER', nextBuildNumber.toString());

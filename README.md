@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Generate build number
-      uses: ./.github/actions/build-number
+      uses: rubikloud/build-number@v2
       with:
         token: ${{secrets.github_token}}        
     - name: Print new build number
@@ -40,7 +40,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Generate build number
       id: buildnumber
-      uses: ./.github/actions/build-number
+      uses: rubikloud/build-number@v2
       with:
         token: ${{secrets.github_token}}        
     
@@ -67,7 +67,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Generate build number
       id: buildnumber
-      uses: ./.github/actions/build-number
+      uses: rubikloud/build-number@v2
       with:
         token: ${{secrets.github_token}}
           
