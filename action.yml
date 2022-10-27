@@ -8,6 +8,9 @@ inputs:
   token:
     description: 'GitHub Token to create and delete refs (GITHUB_TOKEN)'
     required: false # Not required when getting the stored build number for later jobs, only in the first jobs when it's generated
+  prefix:
+    description: 'Tag prefix (the non-build-number part of the previous tag)'
+    required: false # Not required if there is no prefix!
 
 outputs:
   build_number:
